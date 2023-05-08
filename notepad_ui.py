@@ -1,5 +1,6 @@
 from tkinter import *
 import text_agregation as ta
+import finding_window_agregation as fwa
 
 
 class Notepad:
@@ -9,13 +10,13 @@ class Notepad:
         self.root.geometry('600x700')
 
         self.main_menu = Menu(self.root)
-
         # Файл
         self.file_menu = Menu(self.main_menu, tearoff=0)
         self.file_menu.add_command(label='Открыть', command=lambda: ta.open_file(self.text_field))
         self.file_menu.add_command(label='Сохранить', command=lambda: ta.save_file(self.text_field))
+        self.file_menu.add_command(label='Сохранить как...', command=lambda: ta.save_file_as(self.text_field))
         self.file_menu.add_separator()
-        self.file_menu.add_command(label='Закрыть', command=lambda: ta.notepad_exit(self.root))
+        self.file_menu.add_command(label='Закрыть', command=lambda: ta.notepad_exit(self.root, self.text_field))
         self.root.config(menu=self.file_menu)
 
         # Вид
@@ -36,7 +37,8 @@ class Notepad:
         # Добавление списков меню
         self.main_menu.add_cascade(label='Файл', menu=self.file_menu)
         self.main_menu.add_cascade(label='Вид', menu=self.view_menu)
-        self.main_menu.add_command(label='Найти подстроку', command=lambda: ta.call_finding_menu(self.text_field))
+        self.main_menu.add_cascade(label='Режим переноса слов', command=lambda: ta.change_wrap(self.text_field))
+        self.main_menu.add_command(label='Найти подстроку', command=lambda: fwa.call_finding_menu(self.text_field))
         self.root.config(menu=self.main_menu)
 
         # Добавление контекстного меню
@@ -54,7 +56,7 @@ class Notepad:
                                fg='black',
                                padx=10,
                                pady=10,
-                               wrap=WORD,
+                               wrap=NONE,
                                insertbackground='black',
                                selectbackground='#8D917A',
                                spacing3=10,
@@ -64,6 +66,7 @@ class Notepad:
         self.text_field.pack(expand=1, fill=BOTH, side=LEFT)
 
         # Скролл бар
+
         self.scroll = Scrollbar(self.f_text, command=self.text_field.yview)
         self.scroll.pack(side=LEFT, fill=Y)
         self.text_field.config(yscrollcommand=self.scroll.set)
@@ -71,3 +74,8 @@ class Notepad:
         # Обработка нажатия пкм
         self.text_field.bind("<ButtonRelease-3>",
                              lambda e, tf=self.text_field, cm=self.context_menu: ta.call_context_menu(e, tf, cm))
+
+        self.root.protocol('WM_DELETE_WINDOW', lambda a=self.root, b=self.text_field: ta.notepad_exit(a, b))
+
+
+

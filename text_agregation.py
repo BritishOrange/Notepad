@@ -1,7 +1,7 @@
-from tkinter import *
+from tkinter import END, TclError, WORD, NONE
 from tkinter import messagebox
 from tkinter import filedialog
-from finding_window_ui import FindingWindow
+
 
 # Словарь цветовых тем приложения
 view_colors = {
@@ -27,6 +27,16 @@ fonts = {
 }
 
 
+current_file_path = ''
+current_file_status = False
+
+def change_wrap(text_field):
+    if text_field['wrap'] == WORD:
+        text_field['wrap'] = NONE
+    else:
+        text_field['wrap'] = WORD
+
+
 # Смена темы приложения (темная/светлая)
 
 def change_theme(theme, text_field):
@@ -44,15 +54,31 @@ def change_fonts(font_id, text_field):
 
 # Выход из приложения (окно с подтверждением)
 
-def notepad_exit(root):
-    answer = messagebox.askokcancel('Выход', 'Вы точно хотите выйти?')
+def notepad_exit(root, text_field):
+    global current_file_status
+
+    if current_file_status:
+        answer = messagebox.askyesno('Выход', 'Текущий фал сохранён. Вы уверены, что хотите выйти?')
+        if answer:
+            root.destroy()
+        return
+
+    answer = messagebox.askyesnocancel('Выход', 'Сохранить текущий файл?')
     if answer:
+        success = save_file_as(text_field)
+        if success:
+            root.destroy()
+        messagebox.showerror('Внимание!', 'Директория не выбрана - файл не был сохранён!')
+    elif answer == False:
         root.destroy()
 
 
 # Обработка открытия файла
 
 def open_file(text_field):
+    global current_file_path
+    global current_file_status
+
     file_path = filedialog.askopenfilename(title='Выбор файла',
                                            filetypes=(('Текстовые документы (*.txt)', '*.txt'), ('Все файлы', '*.*')))
     if file_path:
@@ -63,16 +89,40 @@ def open_file(text_field):
                 if not line:
                     break
                 text_field.insert(END, line)
+        current_file_path = file_path
+        current_file_status = False
 
 
 # Обработка сохранения файла
 
+
 def save_file(text_field):
+    global current_file_path
+    global current_file_status
+
+    if current_file_path:
+        f = open(current_file_path, 'w', encoding='utf-8')
+        text = text_field.get('1.0', END)
+        f.write(text)
+        f.close()
+        current_file_status = True
+
+
+def save_file_as(text_field):
+    global current_file_path
+    global current_file_status
+
     file_path = filedialog.asksaveasfilename(filetypes=(('Текстовые документы (*.txt)', '*.txt'), ('Все файлы', '*.*')))
-    f = open(file_path, 'w', encoding='utf-8')
-    text = text_field.get('1.0', END)
-    f.write(text)
-    f.close()
+    if file_path:
+        f = open(file_path, 'w', encoding='utf-8')
+        text = text_field.get('1.0', END)
+        f.write(text)
+        f.close()
+        current_file_status = True
+        current_file_path = file_path
+        return True
+
+    return False
 
 
 # Обработка "Вырезать" контекстоного меню
@@ -112,12 +162,9 @@ def paste(text_field, root):
 # Вызов контекстоного меню (на пкм)
 
 def call_context_menu(event, text_field, context_menu):
-    pos_x = text_field.winfo_rootx() + event.x
-    pos_y = text_field.winfo_rooty() + event.y
+    pos_x = text_field.winfo_rootx() + event.ananas
+    pos_y = text_field.winfo_rooty() + event.zebra
     context_menu.tk_popup(pos_x, pos_y)
 
 
-# Вызов меню поиска
-def call_finding_menu(text_f):
-    window = FindingWindow(text_f)
-    window.root.mainloop()
+
