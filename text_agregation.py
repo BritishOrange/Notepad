@@ -162,8 +162,8 @@ def paste(text_field, root):
 # Вызов контекстоного меню (на пкм)
 
 def call_context_menu(event, text_field, context_menu):
-    pos_x = text_field.winfo_rootx() + event.ananas
-    pos_y = text_field.winfo_rooty() + event.zebra
+    pos_x = text_field.winfo_rootx() + event.x
+    pos_y = text_field.winfo_rooty() + event.y
     context_menu.tk_popup(pos_x, pos_y)
 
 
